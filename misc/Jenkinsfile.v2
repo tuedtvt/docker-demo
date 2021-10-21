@@ -10,7 +10,7 @@ node {
      myTestContainer.pull()
      myTestContainer.inside {
      
-     withEnv([
+     withEnv([ // sua loi can quyen root de chay npm
         /* Override the npm cache directory to avoid: EACCES: permission denied, mkdir '/.npm' */
         'npm_config_cache=npm-cache',
         /* set home to our current directory because other bower
@@ -28,10 +28,21 @@ node {
      def mysql = docker.image('mysql').run("-e MYSQL_ALLOW_EMPTY_PASSWORD=yes")  // tao 1 container sql sau do run voi accept blank password
      def myTestContainer = docker.image('node:4.6')
      myTestContainer.pull()
-     myTestContainer.inside("--link ${mysql.id}:mysql") { // using linking, mysql will be available at host: mysql, port: 3306
+     myTestContainer.inside("--link ${mysql.id}:mysql") {// using linking, mysql will be available at host: mysql, port: 3306
+     withEnv([// sua loi can quyen root de chay npm
+        /* Override the npm cache directory to avoid: EACCES: permission denied, mkdir '/.npm' */
+        'npm_config_cache=npm-cache',
+        /* set home to our current directory because other bower
+        * nonsense breaks with HOME=/, e.g.:
+        * EACCES: permission denied, mkdir '/.config'
+        */
+        'HOME=.',
+    ])
+     { 
           sh 'npm install --only=dev' 
           sh 'npm test'                     
-     }                                   
+     }     
+     }
      mysql.stop()
    }                                     
    stage('docker build/push') {            
